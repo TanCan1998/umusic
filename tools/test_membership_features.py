@@ -6,7 +6,7 @@ files={}
 def source(name,text):files[name.replace('.','/')+'.java']=text
 source('android.app.Activity','package android.app;public class Activity {}')
 source('io.github.libxposed.api.XposedInterface','''package io.github.libxposed.api;public interface XposedInterface {enum ExceptionMode{PROTECTIVE}interface Hooker{Object intercept(Chain c)throws Throwable;}interface Chain{Object proceed()throws Throwable;}interface HookHandle{void unhook();}interface HookBuilder{HookBuilder setId(String s);HookBuilder setExceptionMode(ExceptionMode m);HookHandle intercept(Hooker h);}}''')
-source('com.xiandehuang.umusic.Entry','''package com.xiandehuang.umusic;
+source('io.github.tancan1998.umusic.Entry','''package io.github.tancan1998.umusic;
 import java.lang.reflect.*;import java.util.*;import io.github.libxposed.api.XposedInterface.*;
 public class Entry {
  public boolean master=true;public String failId;public final Map<String,Boolean> flags=new HashMap<>();
@@ -28,7 +28,7 @@ source('com.tencent.qqmusic.activity.soundfx.supersound.rights.g','''package com
 source('rx.d','''package rx;public class d {public final Object value;public d(Object v){value=v;}public static d a0(Object v){return new d(v);}}''')
 source('com.tencent.qqmusic.activity.soundfx.supersound.rights.SoundEffectRightsManager','''package com.tencent.qqmusic.activity.soundfx.supersound.rights;public class SoundEffectRightsManager {public int originals;public rx.d R(int t,int id){originals++;return rx.d.a0(null);}public g e0(int t,int id){originals++;return null;}}''')
 source('com.tencent.qqmusic.activity.soundfx.TestCaller','''package com.tencent.qqmusic.activity.soundfx;public class TestCaller {public static Object call(java.util.concurrent.Callable<Object> c)throws Exception{return c.call();}}''')
-source('com.xiandehuang.umusic.MembershipContractTest','''package com.xiandehuang.umusic;
+source('io.github.tancan1998.umusic.MembershipContractTest','''package io.github.tancan1998.umusic;
 import com.tencent.qqmusic.business.user.*;import com.tencent.qqmusic.activity.soundfx.supersound.rights.*;import com.tencent.qqmusic.activity.soundfx.TestCaller;
 public class MembershipContractTest {
  static void check(boolean b,String s){if(!b)throw new AssertionError(s);}
@@ -55,7 +55,7 @@ with tempfile.TemporaryDirectory(prefix='umusic-membership-') as directory:
  work=pathlib.Path(directory)
  for name,text in files.items():
   p=work/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text)
- real=work/'com/xiandehuang/umusic/MembershipFeatures.java';real.write_text((ROOT/'app/src/main/java/com/xiandehuang/umusic/MembershipFeatures.java').read_text())
+ real=work/'io/github/tancan1998/umusic/MembershipFeatures.java';real.write_text((ROOT/'app/src/main/java/io/github/tancan1998/umusic/MembershipFeatures.java').read_text())
  classes=work/'classes';classes.mkdir()
  subprocess.run(['javac','-encoding','UTF-8','-d',str(classes)]+[str(work/n) for n in files]+[str(real)],check=True,capture_output=True,text=True)
- subprocess.run(['java','-cp',str(classes),'com.xiandehuang.umusic.MembershipContractTest'],check=True)
+ subprocess.run(['java','-cp',str(classes),'io.github.tancan1998.umusic.MembershipContractTest'],check=True)

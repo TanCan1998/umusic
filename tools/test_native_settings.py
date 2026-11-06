@@ -20,7 +20,7 @@ source('android.view.ViewGroup','''package android.view; public class ViewGroup 
 source('android.widget.TextView','''package android.widget; public class TextView extends android.view.View {private CharSequence t="设置";public CharSequence getText(){return t;}public void setText(String s){t=s;}}''')
 source('org.json.JSONObject','''package org.json; public class JSONObject {public JSONObject(String s){}public JSONObject optJSONObject(String k){return new JSONObject("");}public int optInt(String k){return 1;}public long optLong(String k){return 0;}public String optString(String k,String d){return d;}}''')
 source('io.github.libxposed.api.XposedInterface','''package io.github.libxposed.api; import java.lang.reflect.Method; public interface XposedInterface {enum ExceptionMode{PROTECTIVE}interface Hooker{Object intercept(Chain c)throws Throwable;}interface Chain{Object getThisObject();Object getArg(int i);Object proceed()throws Throwable;}interface HookHandle{void unhook();}interface HookBuilder{HookBuilder setId(String s);HookBuilder setExceptionMode(ExceptionMode m);HookHandle intercept(Hooker h);}}''')
-source('com.xiandehuang.umusic.Entry','''package com.xiandehuang.umusic;
+source('io.github.tancan1998.umusic.Entry','''package io.github.tancan1998.umusic;
 import java.lang.reflect.*;import java.util.*;import io.github.libxposed.api.XposedInterface.*;
 public class Entry {
  public static final Map<Method,Hooker> hooks=new HashMap<>();public static String failId;
@@ -52,21 +52,21 @@ public abstract class BaseSettingPackage implements SettingEvent {{protected fin
  public void onCreate(){{for(SettingProvider p:settingProviders)p.onCreate();}}public void onResume(){{for(SettingProvider p:settingProviders)p.onResume();}}public void onPause(){{for(SettingProvider p:settingProviders)p.onPause();}}public void onDestroy(){{for(SettingProvider p:settingProviders)p.onDestroy();}}public void onEvent(int n){{host.onEvent(n);}}
 }}''')
 source(MORE+'.settings.providers.z',f'''package {MORE}.settings.providers;import {BASE}.*;
-public class z extends SettingProvider {{public z(android.content.Context c,SettingEvent h,String s){{super(c,h);setting.setTitleText(s);}}public Setting create(){{return (Setting)com.xiandehuang.umusic.Entry.invoke(this,z.class,"create",new Class[0],new Object[0],()->Setting.builder(context).type(3).build());}}}}''')
+public class z extends SettingProvider {{public z(android.content.Context c,SettingEvent h,String s){{super(c,h);setting.setTitleText(s);}}public Setting create(){{return (Setting)io.github.tancan1998.umusic.Entry.invoke(this,z.class,"create",new Class[0],new Object[0],()->Setting.builder(context).type(3).build());}}}}''')
 source(MORE+'.settings.providers.p1',f'''package {MORE}.settings.providers;import {BASE}.*;
 public class p1 extends SettingProvider {{public p1(android.content.Context c,SettingEvent h){{super(c,h);}}public Setting create(){{return Setting.builder(context).title("设置").type(2).tag(p1.class).click(v->{{}}).build();}}}}''')
 source(MORE+'.settings.packages.d',f'''package {MORE}.settings.packages;import {BASE}.*;import java.util.concurrent.CopyOnWriteArrayList;
 public class d extends BaseSettingPackage {{public static int originals=0,events=0;public d(android.content.Context c,SettingEvent h,android.os.Bundle b){{super(c,h,b);}}
- @SuppressWarnings("unchecked") public CopyOnWriteArrayList<SettingProvider> createSettingProvider(){{return (CopyOnWriteArrayList<SettingProvider>)com.xiandehuang.umusic.Entry.invoke(this,d.class,"createSettingProvider",new Class[0],new Object[0],()->{{originals++;CopyOnWriteArrayList<SettingProvider> l=new CopyOnWriteArrayList<>();l.add(new {MORE}.settings.providers.z(context,this,"原设置"));return l;}});}}
- public void onEvent(int n){{com.xiandehuang.umusic.Entry.invoke(this,d.class,"onEvent",new Class[]{{int.class}},new Object[]{{n}},()->{{events++;host.onEvent(n);return null;}});}}
+ @SuppressWarnings("unchecked") public CopyOnWriteArrayList<SettingProvider> createSettingProvider(){{return (CopyOnWriteArrayList<SettingProvider>)io.github.tancan1998.umusic.Entry.invoke(this,d.class,"createSettingProvider",new Class[0],new Object[0],()->{{originals++;CopyOnWriteArrayList<SettingProvider> l=new CopyOnWriteArrayList<>();l.add(new {MORE}.settings.providers.z(context,this,"原设置"));return l;}});}}
+ public void onEvent(int n){{io.github.tancan1998.umusic.Entry.invoke(this,d.class,"onEvent",new Class[]{{int.class}},new Object[]{{n}},()->{{events++;host.onEvent(n);return null;}});}}
 }}''')
 source(MORE+'.settings.packages.b',f'''package {MORE}.settings.packages;import {BASE}.*;import java.util.concurrent.CopyOnWriteArrayList;
 public class b extends BaseSettingPackage {{public b(android.content.Context c,SettingEvent h,android.os.Bundle b){{super(c,h,b);}}
- @SuppressWarnings("unchecked") public CopyOnWriteArrayList<SettingProvider> createSettingProvider(){{return (CopyOnWriteArrayList<SettingProvider>)com.xiandehuang.umusic.Entry.invoke(this,b.class,"createSettingProvider",new Class[0],new Object[0],()->{{CopyOnWriteArrayList<SettingProvider> l=new CopyOnWriteArrayList<>();l.add(new {MORE}.settings.providers.p1(context,this));l.add(new {MORE}.settings.providers.z(context,this,"定时关闭"));return l;}});}}
+ @SuppressWarnings("unchecked") public CopyOnWriteArrayList<SettingProvider> createSettingProvider(){{return (CopyOnWriteArrayList<SettingProvider>)io.github.tancan1998.umusic.Entry.invoke(this,b.class,"createSettingProvider",new Class[0],new Object[0],()->{{CopyOnWriteArrayList<SettingProvider> l=new CopyOnWriteArrayList<>();l.add(new {MORE}.settings.providers.p1(context,this));l.add(new {MORE}.settings.providers.z(context,this,"定时关闭"));return l;}});}}
 }}''')
 source('com.tencent.qqmusic.activity.base.BaseFragmentActivity',f'''package com.tencent.qqmusic.activity.base;public class BaseFragmentActivity extends android.app.Activity{{public void addSecondFragment(Class<?> c,android.os.Bundle b){{}}}}''')
 source(MORE+'.SettingFeaturesFragment',f'''package {MORE}; public class SettingFeaturesFragment {{public android.os.Bundle getArguments(){{return new android.os.Bundle();}}private void initTitleBar(android.view.View v){{}}private void initSuperVipBtnConfig(){{}}private void showSimpleModeTip(){{}}}}''')
-source('com.xiandehuang.umusic.NativeSettingsContractTest',f'''package com.xiandehuang.umusic;
+source('io.github.tancan1998.umusic.NativeSettingsContractTest',f'''package io.github.tancan1998.umusic;
 import {BASE}.*;import {MORE}.settings.packages.*;import java.util.*;
 public class NativeSettingsContractTest {{
  static void check(boolean ok,String m){{if(!ok)throw new AssertionError(m);}}
@@ -94,10 +94,10 @@ with tempfile.TemporaryDirectory(prefix='umusic-native-contract-') as directory:
     work=pathlib.Path(directory)
     for name,text in files.items():
         path=work/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text)
-    real=ROOT/'app/src/main/java/com/xiandehuang/umusic/HostSettings.java'
-    path=work/'com/xiandehuang/umusic/HostSettings.java';path.write_text(real.read_text())
+    real=ROOT/'app/src/main/java/io/github/tancan1998/umusic/HostSettings.java'
+    path=work/'io/github/tancan1998/umusic/HostSettings.java';path.write_text(real.read_text())
     output=work/'classes';output.mkdir()
-    status=work/'com/xiandehuang/umusic/StatusText.java';status.write_text((ROOT/'app/src/main/java/com/xiandehuang/umusic/StatusText.java').read_text())
+    status=work/'io/github/tancan1998/umusic/StatusText.java';status.write_text((ROOT/'app/src/main/java/io/github/tancan1998/umusic/StatusText.java').read_text())
     java=[str(work/name) for name in files]+[str(path),str(status)]
     subprocess.run(['javac','-encoding','UTF-8','-d',str(output)]+java,check=True,capture_output=True,text=True)
-    subprocess.run(['java','-cp',str(output),'com.xiandehuang.umusic.NativeSettingsContractTest'],check=True)
+    subprocess.run(['java','-cp',str(output),'io.github.tancan1998.umusic.NativeSettingsContractTest'],check=True)

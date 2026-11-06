@@ -16,7 +16,7 @@ QQ 音乐净化模块：开屏、摇一摇、蒙层、我的页及搜索广告�
 
 ## 安装与使用
 
-下载 [Releases](https://github.com/TanCan1998/umusic/releases) 中的 APK，在兼容 libxposed API 102 的框架中启用，并将作用域设为对应宿主，然后重启宿主。包名为 `com.xiandehuang.umusic`。仅发布现代 API 102 构建；U 闲最低 Android 8，U 音最低 Android 9。
+下载 [Releases](https://github.com/TanCan1998/umusic/releases) 中的 APK，在兼容 libxposed API 102 的框架中启用，并将作用域设为对应宿主，然后重启宿主。包名为 `io.github.tancan1998.umusic`。仅发布现代 API 102 构建；U 闲最低 Android 8，U 音最低 Android 9。
 
 设置复用 QQ 音乐原生页面，不提供独立后台页面。
 
@@ -49,3 +49,10 @@ python3 tools/build.py
 感谢 [U 闲](https://github.com/TanCan1998/uxian) 的功能开关、原生入口与挂载诊断设计，以及 [libxposed](https://github.com/libxposed/api)、[LSPosed](https://github.com/LSPosed/LSPosed) 和相关开源工具贡献者。
 
 本项目不是上述项目的官方版本，也未获得其背书。
+
+
+## 官方收录包名迁移（0.9）
+
+官方机器人拒绝旧包名 `com.xiandehuang.umusic` 的域名验证。本发行版改为 `io.github.tancan1998.umusic`，源码命名空间、模块入口、资源包名、Provider authority、重启 action 和调用方检查均同步迁移。旧版 Release 仅保留历史，不应与新版同时启用在同一宿主。
+
+新旧包名不同，无法原地覆盖。迁移时请先停用旧模块，再安装并启用新版、设置宿主作用域后重启宿主；不要同时启用两份模块。模块发行签名继续使用原项目的持久签名。当前已装模块未在本次发布中替换。宿主私有配置键维持原样，但新包名发行版尚未完成真机回归，不能把旧安装版的实测结论视为新版验收。

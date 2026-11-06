@@ -1,9 +1,10 @@
 from axml_base import Builder,TYPE_STRING
 from pathlib import Path
-import sys
-PACKAGE='com.xiandehuang.umusic'
+import sys,json
+PACKAGE='io.github.tancan1998.umusic'
+release=json.loads((Path(__file__).resolve().parents[1]/'release.json').read_text())
 b=Builder()
-b.open('manifest',[(0xffffffff,b.pool.get('package'),b.pool.get(PACKAGE),TYPE_STRING,b.pool.get(PACKAGE)),b._attr('versionCode',8,is_string=False),b._attr('versionName','0.8')])
+b.open('manifest',[(0xffffffff,b.pool.get('package'),b.pool.get(PACKAGE),TYPE_STRING,b.pool.get(PACKAGE)),b._attr('versionCode',release['version_code'],is_string=False),b._attr('versionName',release['version_name'])])
 b.simple('uses-sdk',[b._attr('minSdkVersion',28,is_string=False),b._attr('targetSdkVersion',34,is_string=False)])
 b.open('queries')
 b.simple('package',[b._attr('name','com.tencent.qqmusic')]);b.close()

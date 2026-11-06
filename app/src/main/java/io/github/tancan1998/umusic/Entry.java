@@ -1,4 +1,4 @@
-package com.xiandehuang.umusic;
+package io.github.tancan1998.umusic;
 
 import android.app.Application;
 import android.content.Context;
@@ -158,7 +158,7 @@ public final class Entry extends XposedModule {
                     if(uri==null || !"/umusic-status".equals(uri.getPath()))return c.proceed();
                     int uid=android.os.Binder.getCallingUid();
                     boolean allowed=uid==0 || uid==2000 || uid==android.os.Process.myUid() || uid==getModuleApplicationInfo().uid;
-                    if(!allowed && context!=null){String[] pkgs=context.getPackageManager().getPackagesForUid(uid);if(pkgs!=null)for(String pkg:pkgs)if(pkg.equals("com.xiandehuang.umusic"))allowed=true;}
+                    if(!allowed && context!=null){String[] pkgs=context.getPackageManager().getPackagesForUid(uid);if(pkgs!=null)for(String pkg:pkgs)if(pkg.equals("io.github.tancan1998.umusic"))allowed=true;}
                     if(!allowed)throw new SecurityException("private diagnostics");
                     android.database.MatrixCursor result=new android.database.MatrixCursor(new String[]{"key","value"});
                     result.addRow(new Object[]{"status",report()});return result;

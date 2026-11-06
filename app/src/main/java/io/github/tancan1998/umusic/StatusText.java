@@ -1,4 +1,4 @@
-package com.xiandehuang.umusic;
+package io.github.tancan1998.umusic;
 
 /** Compact UI status; detailed registration/call counters remain in diagnostics. */
 final class StatusText {

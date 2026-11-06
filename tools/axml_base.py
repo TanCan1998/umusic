@@ -217,7 +217,7 @@ def _build_version_name():
     return time.strftime("%m%d.%H%M")
 
 
-def manifest(package="com.xiandehuang.u", label="U闲", activity=".ProbeActivity",
+def manifest(package="io.github.tancan1998.uxian", label="U闲", activity=".ProbeActivity",
              minversion="93", description="U 闲：闲鱼增强模块（跳过开屏、消息过滤、入口面板）"):
     b = Builder()
     b.open("manifest", [
@@ -249,7 +249,7 @@ def manifest(package="com.xiandehuang.u", label="U闲", activity=".ProbeActivity
     b.simple("meta-data", [b._attr("name", "xposedscope"), b.ref("resource", 0x7F010000)])
     b.simple("provider", [
         b._attr("name", "io.github.libxposed.service.XposedProvider"),
-        b._attr("authorities", "com.xiandehuang.u.XposedService"),
+        b._attr("authorities", "io.github.tancan1998.uxian.XposedService"),
         b._attr("exported", True, is_string=False),
     ])
     b.simple("activity", [
@@ -279,7 +279,7 @@ def manifest(package="com.xiandehuang.u", label="U闲", activity=".ProbeActivity
     ])
     b.simple("provider", [
         b._attr("name", ".ScopeProbeProvider"),
-        b._attr("authorities", "com.xiandehuang.u.scope"),
+        b._attr("authorities", "io.github.tancan1998.uxian.scope"),
         b._attr("exported", True, is_string=False),
     ])
     b.close()

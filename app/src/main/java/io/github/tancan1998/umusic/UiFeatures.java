@@ -1,4 +1,4 @@
-package com.xiandehuang.umusic;
+package io.github.tancan1998.umusic;
 
 import android.view.View;
 import android.view.ViewGroup;

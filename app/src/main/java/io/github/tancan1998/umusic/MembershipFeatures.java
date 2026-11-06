@@ -1,4 +1,4 @@
-package com.xiandehuang.umusic;
+package io.github.tancan1998.umusic;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

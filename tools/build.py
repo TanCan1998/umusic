@@ -21,9 +21,9 @@ run(['java','-Xmx768m','-cp',dl/'r8.jar','com.android.tools.r8.D8','--min-api','
 subprocess.run(['python3','tools/manifest.py',out/'AndroidManifest.xml'],check=True)
 sys.path.insert(0,str(ROOT/'tools'))
 import arsc,pack
-(out/'resources.arsc').write_bytes(arsc.build('com.xiandehuang.umusic',values=('com.tencent.qqmusic',)))
+(out/'resources.arsc').write_bytes(arsc.build('io.github.tancan1998.umusic',values=('com.tencent.qqmusic',)))
 meta=out/'META-INF/xposed';meta.mkdir(parents=True,exist_ok=True)
-(meta/'java_init.list').write_text('com.xiandehuang.umusic.Entry\n')
+(meta/'java_init.list').write_text('io.github.tancan1998.umusic.Entry\n')
 (meta/'scope.list').write_text('com.tencent.qqmusic\n')
 (meta/'module.prop').write_text('minApiVersion=102\ntargetApiVersion=102\nstaticScope=true\n')
 from PIL import Image,ImageDraw

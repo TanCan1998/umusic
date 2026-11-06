@@ -1,7 +1,7 @@
 {
   "title": "U 音",
-  "package": "com.xiandehuang.umusic",
-  "version_name": "0.8",
-  "version_code": 8,
-  "module_repository": "TanCan1998/com.xiandehuang.umusic"
+  "package": "io.github.tancan1998.umusic",
+  "version_name": "0.9",
+  "version_code": 9,
+  "module_repository": "TanCan1998/io.github.tancan1998.umusic"
 }
