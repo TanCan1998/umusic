@@ -1,0 +1,51 @@
+# U 音
+
+**AI 生成项目**：本项目主要代码、文档、测试及构建配置由 AI（OpenAI ChatGPT / Codex，通过 Minis）生成并迭代，由项目维护者提出需求、审核并提供实测反馈。AI 生成不代表已经过完整人工安全审计。
+
+QQ 音乐净化模块：开屏、摇一摇、蒙层、我的页及搜索广告净化，会员引导与金币入口整理、本地会员显示和音效、自动日签、元宝入口开关。入口：我的 → 右上角更多 → 原设置下一行「U 音设置」。
+
+## 已实测宿主版本
+
+| 宿主 | 包名 | 验证来源 |
+| --- | --- | --- |
+| QQ 音乐 20.9.8.8 / versionCode 7608 | `com.tencent.qqmusic` | 维护者于 2026-11-06 确认全部现有功能正常 |
+
+2026-11-06：用户确认当前安装的 U 音 0.7 全部现有功能在下列宿主上实测正常。公开源码 0.8 另外包含切号自动日签修复，已完成契约回归与静态验包，尚未安装进行真实切号验证。
+
+不设置宿主版本号门禁；逐项检查类、方法签名、返回类型与实际挂载结果。挂载成功、实际调用和拦截命中分别报告。其他宿主版本尚未验证。
+
+## 安装与使用
+
+下载 [Releases](https://github.com/TanCan1998/umusic/releases) 中的 APK，在兼容 libxposed API 102 的框架中启用，并将作用域设为对应宿主，然后重启宿主。包名为 `com.xiandehuang.umusic`。仅发布现代 API 102 构建；U 闲最低 Android 8，U 音最低 Android 9。
+
+设置复用 QQ 音乐原生页面，不提供独立后台页面。
+
+本地会员显示不提供服务端会员权益，不保证付费歌曲完整播放或下载授权。自动日签在宿主运行且已登录时触发，不提供脱离宿主的后台定时服务。连续签到天数依据本地成功记录，不等同服务器历史。
+
+首次公开发行使用独立持久签名，无法直接覆盖早期本地测试证书安装的同包名模块。请先备份配置，再由使用者决定如何迁移；不要卸载宿主。
+
+## 构建
+
+GitHub Actions 使用 `ubuntu-latest`、Temurin JDK 17，以及发布时查询的最新官方稳定 Action：checkout v7.0.1、setup-java v6.2.0、upload-artifact v7.0.2，固定完整提交 SHA，Dependabot 每周检查更新。`ubuntu-latest` 跟随 GitHub 托管的最新稳定 Ubuntu 镜像。
+
+```sh
+python3 tools/bootstrap.py
+python3 -m pip install -r requirements-build.txt
+python3 tools/build.py
+```
+
+依赖版本、下载地址和 SHA-256 在 `tools/dependencies.json`；工具下载到 `.tools/`，不依赖维护者设备路径。产物为 `build/umusic.apk`。普通本地构建使用测试证书；正式 CI 使用 GitHub Secrets 中的持久密钥。推送 `v*` 标签后发布相同 APK 与 SHA256SUMS 到源码仓库和个人模块分发仓库，详见 [发布说明](RELEASING.md)。
+
+## 隐私与源码范围
+
+公开 Git 历史已压缩，仅保留关键源码与发布配置提交，作者邮箱使用 GitHub noreply。仓库排除真实抓包数据库、请求回执、账户和位置示例、截图、宿主反编译代码、会话、令牌、签名私钥、本地研究记录及构建产物。模块运行所需的账户状态来自本机宿主，不在源码中预置真实账户。AI/宿主/框架均非本项目的官方背书方。
+
+本地会员显示不提供服务端会员权益，不保证付费歌曲完整播放或下载授权。自动日签在宿主运行且已登录时触发，不提供脱离宿主的后台定时服务。连续签到天数依据本地成功记录，不等同服务器历史。
+
+## 开源协议与致谢
+
+本项目以 **GNU GPL v3.0（GPL-3.0-only）** 发布，完整条款见 [LICENSE](LICENSE)。复制、修改与分发须遵守 GPL，包括分发修改版时提供相应源码及保留版权/许可证声明。第三方组件保留各自许可证，见 [NOTICE](NOTICE.md) 和 `licenses/`；GPL 不授予宿主商标、账号或服务端内容的权利。本项目不包含官方宿主 APK 或反编译源码。
+
+感谢 [U 闲](https://github.com/TanCan1998/uxian) 的功能开关、原生入口与挂载诊断设计，以及 [libxposed](https://github.com/libxposed/api)、[LSPosed](https://github.com/LSPosed/LSPosed) 和相关开源工具贡献者。
+
+本项目不是上述项目的官方版本，也未获得其背书。
