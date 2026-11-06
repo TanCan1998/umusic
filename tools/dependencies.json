@@ -1,0 +1,23 @@
+[
+  {
+    "file": "android-all.jar",
+    "url": "https://repo.maven.apache.org/maven2/org/robolectric/android-all/14-robolectric-10818077/android-all-14-robolectric-10818077.jar",
+    "sha256": "6be2218c6a53fe3c57bc22ebdc723edcb7270a8a6f187545708aa5c0ed813977"
+  },
+  {
+    "file": "api.aar",
+    "url": "https://repo.maven.apache.org/maven2/io/github/libxposed/api/102.0.0/api-102.0.0.aar",
+    "sha256": "423484a6e1807e7a423c4b88fcd8176d104318259d91791877fed88fe91479d0",
+    "extract": "lxaar"
+  },
+  {
+    "file": "r8.jar",
+    "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.5.28/r8-9.5.28.jar",
+    "sha256": "38a9ffaaebbd17d1514e3ecbff5a85b989bb13c551b9e224c7409514eea84ff5"
+  },
+  {
+    "file": "signer.jar",
+    "url": "https://gh-proxy.org/https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar",
+    "sha256": "e1299fd6fcf4da527dd53735b56127e8ea922a321128123b9c32d619bba1d835"
+  }
+]
