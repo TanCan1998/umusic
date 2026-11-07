@@ -172,7 +172,7 @@ public final class Entry extends XposedModule {
     void settingChanged(){main.post(()->{UiFeatures.refresh();DailySign.maybe(context);});flush(true);}
     private synchronized String report(){
         JSONObject root=new JSONObject();try{
-            root.put("module","U音 0.10");root.put("pid",android.os.Process.myPid());root.put("signTasks",SignTasks.diagnostics());root.put("dailySignResult",DailySign.status());root.put("dailySignStreak",DailySign.streak());root.put("accountEventsReady",DailySign.accountEventsReady());
+            root.put("module","U音 1.0");root.put("pid",android.os.Process.myPid());root.put("signTasks",SignTasks.diagnostics());root.put("dailySignResult",DailySign.status());root.put("dailySignStreak",DailySign.streak());root.put("accountEventsReady",DailySign.accountEventsReady());
             root.put("adaptation","actual_hook_registration");root.put("time",System.currentTimeMillis());root.put("toastShown",toasted.get());root.put("lifecycleRegistered",lifecycleRegistered.get());
             for(Map.Entry<String,Stat> e:stats.entrySet()){
                 Stat s=e.getValue();JSONObject j=new JSONObject();j.put("expected",s.expected);j.put("installed",s.installed);j.put("status",s.installed==0?"unavailable":s.installed==s.expected?"installed":"partial");j.put("entered",s.entered);j.put("hits",s.hits);j.put("enabled",enabled(e.getKey()));j.put("error",s.error);root.put(e.getKey(),j);
