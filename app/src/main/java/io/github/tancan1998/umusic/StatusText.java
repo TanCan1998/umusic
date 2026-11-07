@@ -6,6 +6,12 @@ final class StatusText {
         if(!enabled)return "未启用";
         if(expected<=0||installed!=expected)return "不可用";
         if("auto_sign".equals(feature)){
+            if(sign.startsWith("普通日签：")){
+                if(sign.contains("等待登录"))return "等待登录";
+                if(sign.contains("查询中")||sign.contains("请求中"))return "签到中";
+                if(sign.contains("失败")||sign.contains("未知")||sign.contains("未确认")||sign.contains("缺失")||sign.contains("待领奖"))return "部分未完成 · 查看详情";
+                return sign.contains("今日已确认")||sign.contains("奖励已确认")?"今日签到已确认":"等待签到";
+            }
             String suffix="";
             if(sign.contains("失败"))suffix="签到失败";
             else if(sign.contains("等待登录"))return "等待登录";

@@ -32,7 +32,7 @@ final class DailySign {
     private static volatile boolean ready;
     private static volatile String status="未执行";
 
-    private static Method isLogin,getUin,paramString,factory,build,dispatch,respCode,respBytes,moduleLookup;
+    private static Method isLogin,getUin,paramString,paramJson,factory,build,dispatch,respCode,respBytes,moduleLookup;
     private static Constructor<?> params;
     private static Class<?> listener;
     private static Entry module;
@@ -42,7 +42,7 @@ final class DailySign {
             Class<?> user=Class.forName("com.tencent.qqmusic.business.user.UserHelper",false,cl);
             isLogin=method(user,"isLogin",boolean.class);getUin=method(user,"getUin",String.class);
             Class<?> p=Class.forName("com.tencent.qqmusiccommon.cgi.request.JsonRequest",false,cl);params=p.getConstructor();
-            paramString=method(p,"h",p,String.class,String.class);
+            paramString=method(p,"h",p,String.class,String.class);paramJson=method(p,"d",p,String.class);
             Class<?> args=Class.forName("com.tencent.qqmusiccommon.cgi.request.ModuleRequestArgs",false,cl);
             factory=method(Class.forName("com.tencent.qqmusiccommon.cgi.request.e",false,cl),"n",args,String.class,String.class,p);
             Class<?> w=Class.forName("com.tencent.qqmusicplayerprocess.network.w",false,cl);build=method(args,"o",w);
@@ -56,10 +56,11 @@ final class DailySign {
             mr.getDeclaredField("b");rsp.getDeclaredField("g");mb.getDeclaredField("c");mb.getDeclaredField("a");
             ready=true;m.installed("auto_sign");
             installAccountListener(cl);
+            SignTasks.install(m,cl);
         }catch(Throwable t){status="接口不可用";m.warning("auto_sign","日签协议",t);}
     }
     private static Method method(Class<?> cls,String name,Class<?> ret,Class<?>...types)throws Exception{Method m=cls.getDeclaredMethod(name,types);if(m.getReturnType()!=ret)throw new NoSuchMethodException(cls.getName()+"#"+name+" return");m.setAccessible(true);return m;}
-    static String status(){return status;}
+    static String status(){return SignTasks.status(status);}
     private static volatile int streakDays;
     static int streak(){return streakDays;}
     // Count confirmed calendar days for the current account, including earlier U 音 versions.
@@ -103,16 +104,18 @@ final class DailySign {
         accountHash=hash;accountGeneration++;streakDays=0;status=hash==null?"等待登录":"等待签到";
         if(active!=null){active.completed.set(true);if(active.timeout!=null)main.removeCallbacks(active.timeout);active=null;}
     }
-    private static String currentAccount()throws Exception{
+    static String currentAccount()throws Exception{
         if(!Boolean.TRUE.equals(isLogin.invoke(null)))return null;
         String uin=(String)getUin.invoke(null);return uin==null||uin.isEmpty()||uin.equals("0")?null:hash(uin);
     }
     static void maybe(Context context){
         if(!ready||module==null||context==null)return;
         appContext=context.getApplicationContext();
+        SignTasks.maybe(appContext);
         main.post(()->{ensureAccountListener();if(!module.enabled("auto_sign"))return;main.removeCallbacks(scheduledCheck);main.postDelayed(scheduledCheck,3000);});
     }
     private static void start(Context app){
+        SignTasks.maybe(app);
         if(!module.enabled("auto_sign"))return;
         Attempt pending=null;
         try{
@@ -191,6 +194,42 @@ final class DailySign {
         if(request.timeout!=null)main.removeCallbacks(request.timeout);if(active==request)active=null;status=message;
         if(success){SharedPreferences p=module.preferences(app);p.edit().putBoolean(request.key,true).apply();streakDays=confirmedStreak(p,request.key);module.hit("auto_sign");}
         notify(app,message);module.diagnosticChanged();
+    }
+    interface Reply {void result(int code,JSONObject data,String error);}
+    static String uin()throws Exception{return (String)getUin.invoke(null);}
+    static void request(String service,String operation,JSONObject values,Reply reply)throws Exception{
+        Object param=paramJson.invoke(null,values.toString());
+        Object req=build.invoke(factory.invoke(null,service,operation,param));
+        method(req.getClass(),"F",req.getClass(),String.class).invoke(req,new Object[]{null});
+        method(req.getClass(),"a",req.getClass(),String.class,String.class).invoke(req,"uin",uin());
+        Object callback=Proxy.newProxyInstance(listener.getClassLoader(),new Class<?>[]{listener},(proxy,m,args)->{
+            if(m.getDeclaringClass()==Object.class){if(m.getName().equals("hashCode"))return System.identityHashCode(proxy);if(m.getName().equals("equals"))return proxy==args[0];return "UMusicSignTaskCallback";}
+            if(m.getName().equals("onResult")){
+                int code=-1;JSONObject data=null;String error=null;
+                try{
+                    Object response=args[0];int network=(Integer)respCode.invoke(response);
+                    if(network!=0)error="网络码 "+network;
+                    else{
+                        Object mr=UiFeatures.field(response,"g");
+                        if(mr!=null){
+                            int outer=(Integer)UiFeatures.field(mr,"b");
+                            if(outer!=0)error="顶层码 "+outer;
+                            else{
+                                Object sub=moduleLookup.invoke(mr,service,operation);
+                                if(sub==null)error="缺少回执";
+                                else{code=(Integer)UiFeatures.field(sub,"c");Object raw=UiFeatures.field(sub,"a");if(raw==null)raw=UiFeatures.invoke(sub,"d");if(raw!=null)data=new JSONObject(raw.toString());}
+                            }
+                        }else{
+                            byte[] raw=(byte[])respBytes.invoke(response);
+                            if(raw==null)error="空回执";
+                            else{JSONObject all=new JSONObject(new String(raw,StandardCharsets.UTF_8));if(all.optInt("code",-1)!=0)error="顶层回执异常";else{JSONObject sub=all.optJSONObject("req_0");if(sub==null)error="缺少回执";else{code=sub.optInt("code",-1);data=sub.optJSONObject("data");}}}
+                        }
+                    }
+                }catch(Throwable e){error="回执解析失败";}
+                final int c=code;final JSONObject d=data;final String e=error;main.post(()->reply.result(c,d,e));
+            }return null;
+        });
+        if((Integer)dispatch.invoke(null,req,callback)<=0)main.post(()->reply.result(-1,null,"请求未派发"));
     }
     private static void notify(Context app,String message){if(!module.enabled("auto_sign"))return;main.post(()->Toast.makeText(app,message,Toast.LENGTH_LONG).show());}
 }

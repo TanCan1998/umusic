@@ -24,7 +24,7 @@ final class HostSettings {
     private static final String ROOT="com.tencent.qqmusic.fragment.morefeatures.";
     private static final String TAG="umusic-settings";
     private static final String[] KEYS={"enabled","splash","shake","mask","mine","vip_popup","local_vip","sound_effects","coins","auto_sign","yuanbao","search_ads"};
-    private static final String[] LABELS={"U 音总开关","跳过开屏广告","禁止广告摇一摇","隐藏广告蒙层","净化我的页广告","去除开通会员弹窗","解锁本地会员","解锁本地音效","去除金币与领现金入口","自动日签签到","关闭元宝入口","去除搜索页广告"};
+    private static final String[] LABELS={"U 音总开关","跳过开屏广告","禁止广告摇一摇","隐藏广告蒙层","净化我的页广告","去除开通会员弹窗","解锁本地会员","解锁本地音效","去除金币与领现金入口","自动签到与领奖","关闭元宝入口","去除搜索页广告"};
     // z extends SettingProvider and inherits every no-op lifecycle callback.
     // Its create() runs inside super(); provide an already validated Setting there.
     private final ThreadLocal<Object> pendingRow=new ThreadLocal<>();
@@ -153,6 +153,11 @@ final class HostSettings {
             String detail=LABELS[i]+" · "+status;
             Object b=row(ctx,detail,3,TAG+"-diagnostic-"+KEYS[i]);
             result.add(wrap(ctx,owner,build.invoke(b)));
+        }
+        JSONObject signs=report.optJSONObject("signTasks");
+        if(signs!=null)for(java.util.Iterator<String> it=signs.keys();it.hasNext();){
+            String name=it.next();String value=prefs.getBoolean("enabled",true)&&prefs.getBoolean("auto_sign",true)?signs.optString(name,"未执行"):"未启用";
+            Object b=row(ctx,name+" · "+value,3,TAG+"-sign-"+name);result.add(wrap(ctx,owner,build.invoke(b)));
         }
         if(result.isEmpty())throw new IllegalStateException("module provider list empty");
         return result;
