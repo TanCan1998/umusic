@@ -75,14 +75,15 @@ public class NativeSettingsContractTest {{
   android.content.Context ctx=new android.content.Context();final List<Integer> events=new ArrayList<>();SettingEvent event=n->events.add(n);
   d ordinary=new d(ctx,event,new android.os.Bundle());check(ordinary.getSettings().size()==1,"ordinary settings preserved");check(d.originals==1,"ordinary factory runs");ordinary.onEvent(5);check(d.events==1&&events.equals(Arrays.asList(5)),"ordinary event 5 unchanged");events.clear();
   android.os.Bundle marker=new android.os.Bundle();marker.putBoolean("umusic-settings",true);d nativePage=new d(ctx,event,marker);
-  List<Setting> identity=nativePage.getSettings();check(identity.size()==23,"nonempty constructor with all nine rows");check(nativePage.getProviders().size()==23,"rows and providers match");check(d.originals==1,"business providers never created for module page");
+  int switches=23,rows=switches*2-1;
+  List<Setting> identity=nativePage.getSettings();check(identity.size()==rows,"all switches and diagnostics appear");check(nativePage.getProviders().size()==rows,"rows and providers match");check(d.originals==1,"business providers never created for module page");
   for(SettingProvider p:nativePage.getProviders())check(p.getClass().getName().endsWith(".z"),"no business lifecycle provider");
   nativePage.onCreate();nativePage.onResume();nativePage.onPause();nativePage.onDestroy();
-  for(int i=0;i<12;i++){{Setting s=identity.get(i);check(s.type==0&&s.listener!=null,"native switch callback");s.listener.onSwitchStatusChange(false);check(!s.listener.isSwitchOn()&&!s.on,"off state persisted and model synchronized");}}
+  for(int i=0;i<switches;i++){{Setting s=identity.get(i);check(s.type==0&&s.listener!=null,"native switch callback");s.listener.onSwitchStatusChange(false);check(!s.listener.isSwitchOn()&&!s.on,"off state persisted and model synchronized");}}
   nativePage.onEvent(5);nativePage.onEvent(6);check(d.events==1,"module events bypass ordinary business fields");check(events.equals(Arrays.asList(0,0)),"module events full refresh");
-  for(int i=0;i<4;i++){{nativePage.rebuildSetting();check(nativePage.getSettings()==identity,"adapter list identity retained");check(identity.size()==23,"rebuild neither duplicates nor drops rows");for(int k=0;k<12;k++)check(!identity.get(k).listener.isSwitchOn(),"off preference survives rebuild");}}
+  for(int i=0;i<4;i++){{nativePage.rebuildSetting();check(nativePage.getSettings()==identity,"adapter list identity retained");check(identity.size()==rows,"rebuild neither duplicates nor drops rows");for(int k=0;k<switches;k++)check(!identity.get(k).listener.isSwitchOn(),"off preference survives rebuild");}}
   Setting toggle=identity.get(0);toggle.listener.onSwitchStatusChange(true);nativePage.rebuildSetting();check(identity.get(0).listener.isSwitchOn(),"on preference survives rebuild");
-  for(int i=12;i<23;i++)check(identity.get(i).type==3,"diagnostics use nonbutton section contract");
+  for(int i=switches;i<rows;i++)check(identity.get(i).type==3,"diagnostics use nonbutton section contract");
   b drawer=new b(ctx,event,new android.os.Bundle());List<Setting> drawerIdentity=drawer.getSettings();
   for(int repeat=0;repeat<4;repeat++){{check(drawerIdentity.size()==3,"one added drawer provider");check(drawerIdentity.get(0).title.equals("设置")&&drawerIdentity.get(1).title.equals("U 音设置")&&drawerIdentity.get(2).title.equals("定时关闭"),"entry directly after original settings, timer aligned");check(drawerIdentity.get(1).type==2&&drawerIdentity.get(1).click!=null,"entry satisfies click contract");drawer.rebuildSetting();check(drawer.getSettings()==drawerIdentity,"drawer list identity retained");}}
   SettingProvider normal=new {MORE}.settings.providers.z(ctx,event,"ordinary group");check(normal.getSetting().type==3,"thread local row restored after carrier construction");

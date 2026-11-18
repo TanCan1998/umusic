@@ -102,7 +102,8 @@ final class UiFeatures {
         if(!(obj instanceof View))return;View v=(View)obj;Hidden h=hidden.get(v);if(h==null){h=new Hidden(feature,v.getVisibility());hidden.put(v,h);}else if(!module.enabled(feature))h.original=v.getVisibility();
         module.entered(feature);if(module.enabled(feature)){setVisibility(v,View.GONE);module.hit(feature);}
     }
-    private static void forget(Object obj){if(!(obj instanceof View))return;View v=(View)obj;Hidden h=hidden.remove(v);if(h!=null)setVisibility(v,h.original);}
+    static Entry module(){return module;}
+    static void forget(Object obj){if(!(obj instanceof View))return;View v=(View)obj;Hidden h=hidden.remove(v);if(h!=null)setVisibility(v,h.original);}
     private static void setVisibility(View v,int visibility){restoring.set(true);try{v.setVisibility(visibility);}finally{restoring.remove();}}
     private static void rememberTitle(TextView view,String local){CharSequence current=view.getText();if(!local.contentEquals(current))titles.put(view,current);localTitles.put(view,local);if(module.enabled("local_vip")){view.setText(local);module.entered("local_vip");module.hit("local_vip");}}
     private static void badge(Object holder)throws Throwable{
