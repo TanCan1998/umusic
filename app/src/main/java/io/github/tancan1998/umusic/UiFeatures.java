@@ -12,6 +12,7 @@ import java.util.*;
 
 /** Business-scoped UI hooks; never scan all views by label or alter user/account data. */
 final class UiFeatures {
+    static final String VISIBILITY_LISTENER = "view_visibility";
     private static Entry module;
     private static ClassLoader loader;
     private static final Map<View,Hidden> hidden=Collections.synchronizedMap(new WeakHashMap<View,Hidden>());
@@ -26,7 +27,7 @@ final class UiFeatures {
     interface Work {Object run(XposedInterface.Chain c)throws Throwable;}
     static void install(Entry m,ClassLoader cl){
         module=m;loader=cl;
-        register("coins",View.class,"setVisibility",void.class,c->{
+        register(VISIBILITY_LISTENER,View.class,"setVisibility",void.class,c->{
             Hidden h=hidden.get((View)c.getThisObject());
             if(h!=null&&!Boolean.TRUE.equals(restoring.get())){
                 h.original=(Integer)c.getArg(0);
@@ -34,6 +35,7 @@ final class UiFeatures {
             }
             return c.proceed();
         },int.class);
+        installMinePullCoins(m);
         register("coins",MY,"bindCoinEntrance",void.class,c->{
             Object r=c.proceed();hide(invoke(c.getThisObject(),"getCoinContainer"),"coins");hide(invoke(c.getThisObject(),"getBgCoinImg"),"coins");return r;
         },"com.tencent.qqmusic.fragment.mymusic.userinfo.z1");
@@ -85,6 +87,44 @@ final class UiFeatures {
             for(java.lang.reflect.Constructor<?> ctor:type(family).getDeclaredConstructors())m.deoptimize(ctor);
         }catch(Throwable t){m.warning("coins",family+" caller deopt",t);}
     }
+    private static void installMinePullCoins(Entry m) {
+        String feature = "mine_pull_coins";
+        String owner = "com.tencent.qqmusic.fragment.mymusic.my.mytabpull.l";
+        boolean eligibility = register(feature, owner, "i", boolean.class, c -> {
+            if (!m.enabled(feature) || !isMinePullCoinTarget(c.getThisObject())) return c.proceed();
+            m.entered(feature);
+            m.hit(feature);
+            return false;
+        });
+        boolean launch = register(feature, owner, "A", void.class, c -> {
+            if (!m.enabled(feature) || !isMinePullCoinTarget(c.getThisObject())) return c.proceed();
+            // A drag may already have started when the matching configuration arrives.
+            invoke(c.getThisObject(), "r");
+            m.entered(feature);
+            m.hit(feature);
+            return null;
+        });
+        if (!eligibility && !launch) return;
+        try {
+            Class<?> controller = type(owner);
+            m.deoptimize(controller.getDeclaredMethod("onTouch", View.class, android.view.MotionEvent.class));
+            m.deoptimize(controller.getDeclaredMethod("f"));
+        } catch (Throwable error) {
+            m.warning(feature, owner + " caller deopt", error);
+        }
+    }
+
+    private static boolean isMinePullCoinTarget(Object controller) throws Throwable {
+        Object entrance = invoke(controller, "l");
+        Object config = invoke(entrance, "v");
+        if (config == null) return false;
+        Object type = invoke(config, "j");
+        if ("VipEarning".equals(type)) return true;
+        if ("CDShelf".equals(type) || "PenguinIsand".equals(type)) return false;
+        String path = android.net.Uri.parse(String.valueOf(invoke(config, "e"))).getPath();
+        return path != null && path.startsWith("/n3/client/pages/points_center/");
+    }
+
     static boolean register(String f,String owner,String name,Object ret,Work body,String...args){
         try{Class<?>[] types=new Class<?>[args.length];for(int i=0;i<types.length;i++)types[i]=type(args[i]);return register(f,type(owner),name,ret instanceof Class?(Class<?>)ret:type((String)ret),body,types);}
         catch(Throwable t){module.expected(f);module.warning(f,owner+"#"+name,t);return false;}

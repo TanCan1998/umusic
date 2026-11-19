@@ -23,9 +23,9 @@ final class HostSettings {
     private static final String BASE="com.tencent.qqmusic.fragment.morefeatures.settings.base.";
     private static final String ROOT="com.tencent.qqmusic.fragment.morefeatures.";
     private static final String TAG="umusic-settings";
-    private static final String[] KEYS={"enabled","splash","shake","mask","mine","vip_popup","local_vip","sound_effects","coins","auto_sign","yuanbao","search_ads",
+    private static final String[] KEYS={"enabled","startup_toast","splash","shake","mask","mine","vip_popup","local_vip","sound_effects","coins","mine_pull_coins","auto_sign","yuanbao","search_ads",
             "sign_promo","earning_promo","minibar_promo","player_ads","home_promo","audio_ads","recognize_ads","car_ads","home_search_hint","home_coin_badge","home_extra_tabs"};
-    private static final String[] LABELS={"U 音总开关","跳过开屏广告","禁止广告摇一摇","隐藏广告蒙层","净化我的页广告","去除开通会员弹窗","解锁本地会员","解锁本地音效","去除金币与领现金入口","自动签到与领奖","关闭元宝入口","去除搜索页广告",
+    private static final String[] LABELS={"U 音总开关","显示启动提示","跳过开屏广告","禁止广告摇一摇","隐藏广告蒙层","净化我的页广告","去除开通会员弹窗","解锁本地会员","解锁本地音效","去除金币与领现金入口","屏蔽我的页下拉金币入口","自动签到与领奖","关闭元宝入口","去除搜索页广告",
             "拦截签到福利弹窗","拦截赚会员引导","隐藏迷你播放器音效推广","拦截播放器广告","隐藏首页运营推广","拦截电台与长音频广告","拦截听歌识曲广告","拦截车载推广弹窗","隐藏首页搜索推荐词","隐藏金币红点","隐藏首页金币、AI 作歌与刷歌标签"};
     // z extends SettingProvider and inherits every no-op lifecycle callback.
     // Its create() runs inside super(); provide an already validated Setting there.

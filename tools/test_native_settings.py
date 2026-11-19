@@ -18,7 +18,7 @@ source('android.util.Log','''package android.util; public class Log {public stat
 source('android.view.View','''package android.view; public class View {public interface OnClickListener {void onClick(View v);}public android.content.Context getContext(){return null;}}''')
 source('android.view.ViewGroup','''package android.view; public class ViewGroup extends View {public int getChildCount(){return 0;}public View getChildAt(int i){return null;}}''')
 source('android.widget.TextView','''package android.widget; public class TextView extends android.view.View {private CharSequence t="设置";public CharSequence getText(){return t;}public void setText(String s){t=s;}}''')
-source('org.json.JSONObject','''package org.json; public class JSONObject {public JSONObject(String s){}public JSONObject optJSONObject(String k){return k.equals("signTasks")?null:new JSONObject("");}public java.util.Iterator<String> keys(){return java.util.Collections.emptyIterator();}public int optInt(String k){return 1;}public long optLong(String k){return 0;}public String optString(String k,String d){return d;}}''')
+source('org.json.JSONObject','''package org.json; public class JSONObject {public JSONObject(String s){}public JSONObject optJSONObject(String k){return k.equals("signTasks")||k.equals("startup_toast")?null:new JSONObject("");}public java.util.Iterator<String> keys(){return java.util.Collections.emptyIterator();}public int optInt(String k){return 1;}public long optLong(String k){return 0;}public String optString(String k,String d){return d;}}''')
 source('io.github.libxposed.api.XposedInterface','''package io.github.libxposed.api; import java.lang.reflect.Method; public interface XposedInterface {enum ExceptionMode{PROTECTIVE}interface Hooker{Object intercept(Chain c)throws Throwable;}interface Chain{Object getThisObject();Object getArg(int i);Object proceed()throws Throwable;}interface HookHandle{void unhook();}interface HookBuilder{HookBuilder setId(String s);HookBuilder setExceptionMode(ExceptionMode m);HookHandle intercept(Hooker h);}}''')
 source('io.github.tancan1998.umusic.Entry','''package io.github.tancan1998.umusic;
 import java.lang.reflect.*;import java.util.*;import io.github.libxposed.api.XposedInterface.*;
@@ -75,7 +75,7 @@ public class NativeSettingsContractTest {{
   android.content.Context ctx=new android.content.Context();final List<Integer> events=new ArrayList<>();SettingEvent event=n->events.add(n);
   d ordinary=new d(ctx,event,new android.os.Bundle());check(ordinary.getSettings().size()==1,"ordinary settings preserved");check(d.originals==1,"ordinary factory runs");ordinary.onEvent(5);check(d.events==1&&events.equals(Arrays.asList(5)),"ordinary event 5 unchanged");events.clear();
   android.os.Bundle marker=new android.os.Bundle();marker.putBoolean("umusic-settings",true);d nativePage=new d(ctx,event,marker);
-  int switches=23,rows=switches*2-1;
+  int switches=25,rows=switches*2-2;
   List<Setting> identity=nativePage.getSettings();check(identity.size()==rows,"all switches and diagnostics appear");check(nativePage.getProviders().size()==rows,"rows and providers match");check(d.originals==1,"business providers never created for module page");
   for(SettingProvider p:nativePage.getProviders())check(p.getClass().getName().endsWith(".z"),"no business lifecycle provider");
   nativePage.onCreate();nativePage.onResume();nativePage.onPause();nativePage.onDestroy();

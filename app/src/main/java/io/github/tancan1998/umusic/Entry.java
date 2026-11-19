@@ -23,10 +23,19 @@ public final class Entry extends XposedModule {
     private volatile SharedPreferences prefs;
     private final Map<String,Stat> stats=new LinkedHashMap<>();
     private long lastWrite;
-    private final java.util.concurrent.atomic.AtomicBoolean toasted=new java.util.concurrent.atomic.AtomicBoolean();
+    private final java.util.concurrent.atomic.AtomicBoolean startupNoticeHandled = new java.util.concurrent.atomic.AtomicBoolean();
+    private volatile boolean toastShown;
+    private volatile boolean startupComplete;
     private final android.os.Handler main=new android.os.Handler(android.os.Looper.getMainLooper());
     private android.os.Handler writer;
-    private synchronized boolean hasHooks(){for(Stat s:stats.values())if(s.installed>0)return true;return false;}
+    private synchronized boolean hasBusinessHooks() {
+        for (Map.Entry<String, Stat> feature : stats.entrySet()) {
+            if (!UiFeatures.VISIBILITY_LISTENER.equals(feature.getKey()) && feature.getValue().installed > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
     private static final class Stat {
         int installed,expected; long entered,hits; String error="";
     }
@@ -62,6 +71,7 @@ public final class Entry extends XposedModule {
             installDiagnostics();
             HostSettings.install(this,loader);
         }catch(Throwable t){Log.e(TAG,"module initialization failed",t);}
+        finally { startupComplete = true; }
     }
     private final java.util.concurrent.atomic.AtomicBoolean lifecycleRegistered=new java.util.concurrent.atomic.AtomicBoolean();
     private void registerToast(Application app){
@@ -80,10 +90,20 @@ public final class Entry extends XposedModule {
     }
     private void showToast(android.app.Activity a){
         DailySign.maybe(a.getApplicationContext());
-        if(hasHooks() && toasted.compareAndSet(false,true)){
-            try{android.widget.Toast.makeText(a.getApplicationContext(),"U 音已加载\n入口：我的 → 右上角更多 → U 音设置",android.widget.Toast.LENGTH_LONG).show();Log.i(TAG,"startup toast shown");}
-            catch(Throwable t){toasted.set(false);Log.w(TAG,"startup toast failed",t);}flush(true);
+        if (!startupComplete || !startupNoticeHandled.compareAndSet(false, true)) return;
+        try {
+            boolean available = hasBusinessHooks();
+            String notice = StatusText.startupNotice(preferences(a).getBoolean("startup_toast", true), available);
+            if (notice != null) {
+                android.widget.Toast.makeText(a.getApplicationContext(), notice, android.widget.Toast.LENGTH_LONG).show();
+                toastShown = true;
+                Log.i(TAG, available ? "startup toast shown" : "startup failure toast shown");
+            }
+        } catch (Throwable error) {
+            startupNoticeHandled.set(false);
+            Log.w(TAG, "startup toast failed", error);
         }
+        flush(true);
     }
     boolean enabled(String feature){
         try {SharedPreferences p=prefs;return p==null || (p.getBoolean("enabled",true)&&p.getBoolean(feature,true));}
@@ -174,7 +194,7 @@ public final class Entry extends XposedModule {
     private synchronized String report(){
         JSONObject root=new JSONObject();try{
             root.put("module","U音 1.1");root.put("pid",android.os.Process.myPid());root.put("signTasks",SignTasks.diagnostics());root.put("dailySignResult",DailySign.status());root.put("dailySignStreak",DailySign.streak());root.put("accountEventsReady",DailySign.accountEventsReady());
-            root.put("adaptation","actual_hook_registration");root.put("time",System.currentTimeMillis());root.put("toastShown",toasted.get());root.put("lifecycleRegistered",lifecycleRegistered.get());
+            root.put("adaptation","actual_hook_registration");root.put("time",System.currentTimeMillis());root.put("toastShown",toastShown);root.put("lifecycleRegistered",lifecycleRegistered.get());
             for(Map.Entry<String,Stat> e:stats.entrySet()){
                 Stat s=e.getValue();JSONObject j=new JSONObject();j.put("expected",s.expected);j.put("installed",s.installed);j.put("status",s.installed==0?"unavailable":s.installed==s.expected?"installed":"partial");j.put("entered",s.entered);j.put("hits",s.hits);j.put("enabled",enabled(e.getKey()));j.put("error",s.error);root.put(e.getKey(),j);
             }

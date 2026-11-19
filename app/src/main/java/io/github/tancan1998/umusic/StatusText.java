@@ -2,6 +2,11 @@ package io.github.tancan1998.umusic;
 
 /** Compact UI status; detailed registration/call counters remain in diagnostics. */
 final class StatusText {
+    static String startupNotice(boolean showStartupToast, boolean hasBusinessHooks) {
+        if (!hasBusinessHooks) return "U 音加载失败\n所有功能均不可用";
+        return showStartupToast ? "U 音已加载\n入口：我的 → 右上角更多 → U 音设置" : null;
+    }
+
     static String format(String feature,int installed,int expected,boolean enabled,long hits,String sign,int days){
         if(!enabled)return "未启用";
         if(expected<=0||installed!=expected)return "不可用";
