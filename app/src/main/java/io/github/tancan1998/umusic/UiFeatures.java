@@ -20,6 +20,10 @@ final class UiFeatures {
     private static final Map<TextView,CharSequence> titles=Collections.synchronizedMap(new WeakHashMap<TextView,CharSequence>());
     private static final ThreadLocal<Boolean> restoring=new ThreadLocal<>();
     private static final String MY="com.tencent.qqmusic.modular.module.musichall.views.viewholders.v21.MyMusicUserInfoViewHolder21st";
+    private static final String USER_INFO="com.tencent.qqmusic.fragment.mymusic.userinfo.";
+    private static final String USER_ENTRANCES=USER_INFO+"p0";
+    private static final String LOGIN_ENTRANCES=USER_INFO+"d0";
+    private static final String LOGIN_HOLDER="com.tencent.qqmusic.modular.module.musichall.views.viewholders.v13.MyMusicLoginInfoViewHolder21st";
     private static final String TOP="com.tencent.qqmusic.ui.desktopheader.BaseDesktopHeaderNew";
     private static final String PLAYER="com.tencent.qqmusic.business.playernew.view.v4";
     private static final class Hidden {String feature;int original;Hidden(String f,int v){feature=f;original=v;}}
@@ -36,18 +40,16 @@ final class UiFeatures {
             return c.proceed();
         },int.class);
         installMinePullCoins(m);
-        register("coins",MY,"bindCoinEntrance",void.class,c->{
-            Object r=c.proceed();hide(invoke(c.getThisObject(),"getCoinContainer"),"coins");hide(invoke(c.getThisObject(),"getBgCoinImg"),"coins");return r;
-        },"com.tencent.qqmusic.fragment.mymusic.userinfo.z1");
-        register("coins","com.tencent.qqmusic.fragment.mymusic.userinfo.p0","y0",void.class,c->{
-            Object r=c.proceed();Object data=c.getArg(0);
-            // This slot is TaskCenter (1), not DailySign (4) or other top-bar buttons.
-            if(data!=null&&reward(data)){for(String f:new String[]{"E","F","H","g"})hide(field(c.getThisObject(),f),"coins");}
-            else if(data!=null){for(String f:new String[]{"E","F","H","g"})forget(field(c.getThisObject(),f));}
-            return r;
-        },"com.tencent.qqmusic.fragment.mymusic.userinfo.k2","boolean","boolean");
-        register("coins",TOP,"I",void.class,c->{Object r=c.proceed();Object self=c.getThisObject();for(String f:new String[]{"A0","B0","C0","D0"})hide(field(self,f),"coins");return r;},"int","boolean");
-        register("coins",TOP,"L3",void.class,c->{Object r=c.proceed();for(String f:new String[]{"A0","B0","C0","D0"})hide(field(c.getThisObject(),f),"coins");return r;},"int","boolean");
+        boolean currentUserInfo=hasMethod(MY,"bindCoinEntrance",void.class,USER_INFO+"e2");
+        installUserEntrances(currentUserInfo);
+        Work hideHomeCoins=c->{
+            Object result=c.proceed();
+            for(String name:new String[]{"A0","B0","C0","D0"})hide(field(c.getThisObject(),name),"coins");
+            return result;
+        };
+        register("coins",TOP,"I",void.class,hideHomeCoins,"int","boolean");
+        String inflateCoins=hasMethod(TOP,"O3",void.class,"int","boolean")?"O3":"L3";
+        register("coins",TOP,inflateCoins,void.class,hideHomeCoins,"int","boolean");
         register("yuanbao",TOP,"S",void.class,c->{
             if(!m.enabled("yuanbao"))return c.proceed();
             m.entered("yuanbao");invoke(c.getThisObject(),"u",new Class<?>[]{boolean.class},false);m.hit("yuanbao");return null;
@@ -63,14 +65,8 @@ final class UiFeatures {
             m.entered(feature);invoke(c.getThisObject(),"V1",new Class<?>[]{Class.forName("kotlin.jvm.functions.Function0",false,cl)},(Object)null);m.hit(feature);return null;
         },"int","kotlin.jvm.functions.Function0","boolean");
         m.expected("yuanbao");if(dispatcher)m.installed("yuanbao");else m.warning("yuanbao",PLAYER+"#b5",new NoSuchMethodException());
-        register("local_vip",MY,"bindVipEntrance",void.class,c->{
-            Object r=c.proceed();Object self=c.getThisObject();TextView title=(TextView)invoke(self,"getVipCenterTitle");rememberTitle(title,"超级会员");
-            TextView sub=(TextView)invoke(self,"getVipCenterSubtitle");rememberTitle(sub,"本地会员 · 不含云端权益");hide(invoke(self,"getVipCenterFlag"),"local_vip");hide(invoke(self,"getVipCenterIcon"),"local_vip");return r;
-        },"com.tencent.qqmusic.fragment.mymusic.userinfo.d2");
         register("local_vip",MY,"refreshNicknameColorAndVipIcons",void.class,c->{Object r=c.proceed();badge(c.getThisObject());return r;},"com.tencent.qqmusic.business.user.z","boolean");
         register("local_vip",MY,"setIconListData",void.class,c->{Object r=c.proceed();badge(c.getThisObject());return r;},"java.util.List","java.util.List","boolean");
-        String controller="com.tencent.qqmusic.fragment.mymusic.userinfo.p0";
-        register("local_vip",controller,"p0",void.class,c->{Object r=c.proceed();Object self=c.getThisObject();Object title=field(self,"l"),sub=field(self,"m");if(title instanceof TextView)rememberTitle((TextView)title,"超级会员");if(sub instanceof TextView)rememberTitle((TextView)sub,"本地会员 · 不含云端权益");hide(field(self,"n"),"local_vip");hide(field(self,"o"),"local_vip");return r;},"com.tencent.qqmusic.fragment.mymusic.userinfo.g");
         String alternate="com.tencent.qqmusic.modular.module.musichall.views.viewholders.v13.MyMusicUserInfoViewHolder20th";
         register("local_vip",alternate,"refreshNicknameColorAndVipIcons",void.class,c->{Object r=c.proceed();badge(c.getThisObject());return r;},"com.tencent.qqmusic.business.user.z","boolean");
         register("local_vip",alternate,"setIconListData",void.class,c->{Object r=c.proceed();badge(c.getThisObject());return r;},"java.util.List","java.util.List","boolean");
@@ -82,11 +78,100 @@ final class UiFeatures {
         register("local_vip",menuHeader,"payMsgBtn_delegate$lambda$2","android.widget.TextView",c->{Object r=c.proceed();hide(r,"local_vip");return r;},"android.view.View");
         register("local_vip",menuHeader,"getPayMsgBtn","android.widget.TextView",c->{Object r=c.proceed();hide(r,"local_vip");return r;});
         // Reviewed caller families must be deoptimized too: a hooked callee may be AOT-inlined.
-        for(String family:new String[]{MY,alternate,controller,menuHeader,TOP,PLAYER,"com.tencent.qqmusic.business.playernew.view.u4","com.tencent.qqmusic.ui.desktopheader.t1","com.tencent.qqmusic.business.playernew.actionsheet.z0"})try{
-            for(Method method:type(family).getDeclaredMethods())if(!java.lang.reflect.Modifier.isAbstract(method.getModifiers())&&!java.lang.reflect.Modifier.isNative(method.getModifiers()))m.deoptimize(method);
-            for(java.lang.reflect.Constructor<?> ctor:type(family).getDeclaredConstructors())m.deoptimize(ctor);
-        }catch(Throwable t){m.warning("coins",family+" caller deopt",t);}
+        for(String family:new String[]{MY,alternate,USER_ENTRANCES,menuHeader,TOP,PLAYER,"com.tencent.qqmusic.business.playernew.view.u4","com.tencent.qqmusic.ui.desktopheader.t1","com.tencent.qqmusic.business.playernew.actionsheet.z0"})deoptimizeFamily(family,"coins");
     }
+
+    private static void deoptimizeFamily(String family,String feature){
+        try{
+            Class<?> owner=type(family);
+            for(Method method:owner.getDeclaredMethods())if(!java.lang.reflect.Modifier.isAbstract(method.getModifiers())&&!java.lang.reflect.Modifier.isNative(method.getModifiers()))module.deoptimize(method);
+            for(java.lang.reflect.Constructor<?> ctor:owner.getDeclaredConstructors())module.deoptimize(ctor);
+        }catch(Throwable t){module.warning(feature,family+" caller deopt",t);}
+    }
+
+    private static void installUserEntrances(boolean current){
+        registerHolderEntrances(MY,current);
+        register("coins",USER_ENTRANCES,current?"E0":"y0",void.class,c->{
+            Object result=c.proceed();
+            boolean hideReward=isReward(c.getArg(0),current);
+            for(String name:current?new String[]{"h","J","K","M"}:new String[]{"E","F","H","g"}){
+                updateRewardView(field(c.getThisObject(),name),hideReward);
+            }
+            return result;
+        },USER_INFO+(current?"p2":"k2"),"boolean","boolean");
+        register("local_vip",USER_ENTRANCES,current?"v0":"p0",void.class,c->{
+            Object result=c.proceed();
+            if(c.getArg(0)!=null){
+                Object holder=c.getThisObject();
+                setVipLabels(field(holder,current?"p":"l"),field(holder,current?"q":"m"),
+                        field(holder,current?"r":"n"),field(holder,current?"s":"o"));
+                if(current)hide(field(holder,"t"),"local_vip");
+            }
+            return result;
+        },USER_INFO+"g");
+        if(!current)return;
+        registerHolderEntrances(LOGIN_HOLDER,true);
+        register("coins",LOGIN_ENTRANCES,"E0",void.class,c->{
+            Object result=c.proceed();
+            updateRewardView(invoke(c.getThisObject(),"C"),isReward(c.getArg(0),true));
+            return result;
+        },USER_INFO+"p2","boolean","boolean");
+        register("local_vip",LOGIN_ENTRANCES,"v0",void.class,c->{
+            Object result=c.proceed();
+            if(c.getArg(0)!=null){
+                Object holder=c.getThisObject();
+                setVipLabels(invoke(holder,"A"),invoke(holder,"z"),invoke(holder,"x"),invoke(holder,"w"));
+                hide(field(holder,"t"),"local_vip");
+            }
+            return result;
+        },USER_INFO+"g");
+        deoptimizeFamily(LOGIN_HOLDER,"coins");
+        deoptimizeFamily(LOGIN_ENTRANCES,"coins");
+    }
+
+    private static void registerHolderEntrances(String holder,boolean current){
+        register("coins",holder,"bindCoinEntrance",void.class,c->{
+            Object result=c.proceed();
+            hide(invoke(c.getThisObject(),"getCoinContainer"),"coins");
+            hide(invoke(c.getThisObject(),"getBgCoinImg"),"coins");
+            return result;
+        },USER_INFO+(current?"e2":"z1"));
+        register("local_vip",holder,"bindVipEntrance",void.class,c->{
+            Object result=c.proceed();
+            if(c.getArg(0)!=null){
+                Object self=c.getThisObject();
+                setVipLabels(invoke(self,"getVipCenterTitle"),invoke(self,"getVipCenterSubtitle"),
+                        invoke(self,"getVipCenterFlag"),invoke(self,"getVipCenterIcon"));
+            }
+            return result;
+        },USER_INFO+(current?"i2":"d2"));
+    }
+
+    private static boolean isReward(Object data,boolean current)throws Throwable{
+        if(data==null)return false;
+        // Type 1 is the task center. Other placements may receive a cash or coin promotion.
+        if(Integer.valueOf(1).equals(field(data,"a")))return true;
+        if(current)return rewardTitle(invoke(data,"q"))||rewardTitle(invoke(data,"r"));
+        return rewardTitle(field(data,"b"));
+    }
+
+    private static boolean rewardTitle(Object value){
+        if(!(value instanceof CharSequence title))return false;
+        String text=title.toString();
+        return text.contains("金币")||text.contains("领现金");
+    }
+
+    private static void updateRewardView(Object view,boolean reward){
+        if(reward)hide(view,"coins");else forget(view);
+    }
+
+    private static void setVipLabels(Object title,Object subtitle,Object flag,Object icon){
+        if(title instanceof TextView text)rememberTitle(text,"超级会员");
+        if(subtitle instanceof TextView text)rememberTitle(text,"本地会员 · 不含云端权益");
+        hide(flag,"local_vip");
+        hide(icon,"local_vip");
+    }
+
     private static void installMinePullCoins(Entry m) {
         String feature = "mine_pull_coins";
         String owner = "com.tencent.qqmusic.fragment.mymusic.my.mytabpull.l";
@@ -134,10 +219,14 @@ final class UiFeatures {
             module.hook(method).setId("umusic-ui-"+owner.getName()+"-"+name).setExceptionMode(XposedInterface.ExceptionMode.PROTECTIVE).intercept(body::run);module.installed(f);try{module.deoptimize(method);}catch(Throwable ignored){}return true;
         }catch(Throwable t){module.warning(f,owner.getName()+"#"+name,t);return false;}
     }
-    private static boolean reward(Object data)throws Throwable {
-        Object raw=field(data,"b");String title=String.valueOf(raw);return title.contains("金币")||title.contains("领现金")||title.contains("领金币")||((Integer)field(data,"a"))==1;
+    static boolean hasMethod(String owner,String name,Class<?> result,String...args){
+        try{
+            Class<?>[] types=new Class<?>[args.length];
+            for(int i=0;i<args.length;i++)types[i]=type(args[i]);
+            return type(owner).getDeclaredMethod(name,types).getReturnType()==result;
+        }catch(ReflectiveOperationException|LinkageError unavailable){return false;}
     }
-    private static Class<?> type(String name)throws Exception{if(name.equals("boolean"))return boolean.class;if(name.equals("int"))return int.class;return Class.forName(name,false,loader);}
+    private static Class<?> type(String name)throws ClassNotFoundException{if(name.equals("boolean"))return boolean.class;if(name.equals("int"))return int.class;return Class.forName(name,false,loader);}
     static void hide(Object obj,String feature){
         if(!(obj instanceof View))return;View v=(View)obj;Hidden h=hidden.get(v);if(h==null){h=new Hidden(feature,v.getVisibility());hidden.put(v,h);}else if(!module.enabled(feature))h.original=v.getVisibility();
         module.entered(feature);if(module.enabled(feature)){setVisibility(v,View.GONE);module.hit(feature);}
@@ -145,7 +234,7 @@ final class UiFeatures {
     static Entry module(){return module;}
     static void forget(Object obj){if(!(obj instanceof View))return;View v=(View)obj;Hidden h=hidden.remove(v);if(h!=null)setVisibility(v,h.original);}
     private static void setVisibility(View v,int visibility){restoring.set(true);try{v.setVisibility(visibility);}finally{restoring.remove();}}
-    private static void rememberTitle(TextView view,String local){CharSequence current=view.getText();if(!local.contentEquals(current))titles.put(view,current);localTitles.put(view,local);if(module.enabled("local_vip")){view.setText(local);module.entered("local_vip");module.hit("local_vip");}}
+    private static void rememberTitle(TextView view,String local){CharSequence current=view.getText();if(!local.contentEquals(current))titles.put(view,current);localTitles.put(view,local);if(module.enabled("local_vip")){setTitle(view,local);module.entered("local_vip");module.hit("local_vip");}}
     private static void badge(Object holder)throws Throwable{
         View icons=(View)invoke(holder,"getVipIconListView");ViewGroup parent=(ViewGroup)icons.getParent();if(parent==null)return;
         TextView label=(TextView)parent.findViewWithTag("umusic-local-vip-badge");
@@ -155,8 +244,15 @@ final class UiFeatures {
     }
     static void refresh(){
         synchronized(hidden){for(Map.Entry<View,Hidden> e:hidden.entrySet())setVisibility(e.getKey(),module.enabled(e.getValue().feature)?View.GONE:e.getValue().original);}
-        synchronized(titles){for(Map.Entry<TextView,CharSequence> e:titles.entrySet()){TextView v=e.getKey();v.setText(module.enabled("local_vip")?localTitle(v):e.getValue());}}
+        synchronized(titles){for(Map.Entry<TextView,CharSequence> e:titles.entrySet()){TextView v=e.getKey();setTitle(v,module.enabled("local_vip")?localTitle(v):e.getValue());}}
         synchronized(badges){for(Badge b:badges.values()){TextView t=b.text.get();if(t!=null)t.setVisibility(module.enabled("local_vip")?View.VISIBLE:View.GONE);}}
+    }
+    private static void setTitle(TextView view,CharSequence value){
+        if((USER_INFO+"MyTabSubtitleMarqueeTextView").equals(view.getClass().getName())){
+            try{invoke(view,"setMarqueeText",new Class<?>[]{CharSequence.class},value);return;}
+            catch(Throwable error){module.warning("local_vip","setMarqueeText",error);}
+        }
+        view.setText(value);
     }
     private static final Map<TextView,String> localTitles=Collections.synchronizedMap(new WeakHashMap<TextView,String>());
     private static String localTitle(TextView v){return localTitles.getOrDefault(v,"超级会员");}

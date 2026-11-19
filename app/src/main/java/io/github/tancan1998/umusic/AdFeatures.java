@@ -14,7 +14,10 @@ final class AdFeatures {
     private static final String SONG = "com.tencent.qqmusicplayerprocess.songinfo.SongInfo";
     private static final String STYLE = QQ + "business.playernew.interactor.playerstyle.PlayerStyle";
     private static final String LAUNCH = QQ + "business.ad.vipearningmode.manager.k";
-    private static final String EFFECT = QQ + "minibarviptips.data.h0";
+    private static final String TIP_MANAGER = QQ + "minibarviptips.MinibarTipManager";
+    private static final String TIP_VIEW = QQ + "minibarviptips.view.MinibarTopTipView";
+    private static final String COMMON_TIP_VIEW = QQ + "minibarviptips.view.MinibarTopVipCommTipView";
+    private static final String TIP_PACKET = "com.tencent.jce.superSound.MinibarTip";
     private static final String INSERT = QQ + "business.ad.freemode.manager.FreeModePlayerAdManager";
     private static final String AUDIO = QQ + "business.ad.media.i";
     private static final String RESPONSE = QQ + "dialog.universal.response.d";
@@ -33,29 +36,7 @@ final class AdFeatures {
         installSignPopup(module, loader);
         skip("earning_promo", QQ + "business.ad.vipearningmode.q0", "u0", void.class, null);
 
-        skip(MINI, EFFECT, "I", void.class, null, SONG);
-        skip(MINI, EFFECT, "N", void.class, null, SONG, "com.tencent.jce.superSound.MinibarTip");
-        skip(MINI, EFFECT, "O", void.class, null, SONG, "com.tencent.jce.superSound.MinibarTip");
-        skip(MINI, EFFECT, "s", QQ + "minibarviptips.data.n", null, SONG);
-        skip(MINI, QQ + "minibarviptips.MinibarTipManager", "F", boolean.class, false, SONG);
-        installMinibarBannerFilters(module, loader);
-        String manager = QQ + "minibarviptips.MinibarTipManager";
-        String tipView = QQ + "minibarviptips.view.MinibarTopTipView";
-        UiFeatures.register(MINI, manager, "h0", tipView, chain -> {
-            Object view = chain.proceed();
-            UiFeatures.hide(view, MINI);
-            return view;
-        }, manager);
-        UiFeatures.register(MINI, tipView, "r0", void.class, chain -> {
-            Object result = chain.proceed();
-            UiFeatures.hide(chain.getThisObject(), MINI);
-            return result;
-        }, QQ + "minibarviptips.data.n", SONG);
-        UiFeatures.register(MINI, QQ + "minibarviptips.view.MinibarTopVipCommTipView", "N", void.class, chain -> {
-            Object result = chain.proceed();
-            UiFeatures.hide(chain.getThisObject(), MINI);
-            return result;
-        }, QQ + "minibarviptips.data.n", SONG);
+        installMinibarPromotions(module, loader);
 
         skip(PLAYER, INSERT, "K", void.class, null, STYLE, "int");
         skip(PLAYER, INSERT, "v", boolean.class, false, SONG, "boolean", "boolean");
@@ -137,41 +118,87 @@ final class AdFeatures {
         }
     }
 
-    private static void installMinibarBannerFilters(Entry module, ClassLoader loader) {
-        String data = QQ + "minibarviptips.data.n";
-        UiFeatures.register(MINI, QQ + "minibarviptips.view.MinibarTopTipView", "Y", boolean.class, chain -> {
-            module.entered(MINI);
-            Object tip = chain.getArg(0);
-            if (module.enabled(MINI) && tip != null && (promotionalTip(UiFeatures.invoke(tip, "b"))
-                    || promotionalTip(UiFeatures.invoke(tip, "s")))) {
+    private static void installMinibarPromotions(Entry module, ClassLoader loader) {
+        String currentData = QQ + "minibarviptips.data.o";
+        boolean current = UiFeatures.hasMethod(TIP_VIEW, "Y", boolean.class, currentData);
+        String data = current ? currentData : QQ + "minibarviptips.data.n";
+        String effect = QQ + "minibarviptips.data." + (current ? "i0" : "h0");
+        skip(MINI, effect, "I", void.class, null, SONG);
+        skip(MINI, effect, "N", void.class, null, SONG, TIP_PACKET);
+        skip(MINI, effect, "O", void.class, null, SONG, TIP_PACKET);
+        skip(MINI, effect, "s", data, null, SONG);
+        skip(MINI, TIP_MANAGER, current ? "H" : "F", boolean.class, false, SONG);
+
+        String dispatch = current ? "U0" : "M0";
+        UiFeatures.register(MINI, TIP_MANAGER, dispatch, void.class, chain -> {
+            Object tip = chain.getArg(1);
+            if (module.enabled(MINI) && (isTopPromotion(tip, current) || isCommonPromotion(tip))) {
+                module.entered(MINI);
+                module.hit(MINI);
+                return null;
+            }
+            return chain.proceed();
+        }, SONG, data, "boolean", "int");
+        UiFeatures.register(MINI, TIP_VIEW, "Y", boolean.class, chain -> {
+            if (module.enabled(MINI) && isTopPromotion(chain.getArg(0), current)) {
+                module.entered(MINI);
                 module.hit(MINI);
                 return false;
             }
             return chain.proceed();
         }, data);
-        UiFeatures.register(MINI, QQ + "minibarviptips.view.MinibarTopVipCommTipView", "E", boolean.class, chain -> {
-            module.entered(MINI);
-            Object tip = chain.getArg(0);
-            if (module.enabled(MINI) && tip != null) {
-                Object banner = UiFeatures.invoke(tip, "a");
-                Object material = UiFeatures.field(banner, "material");
-                if (promotionalTip(UiFeatures.field(material, "text"))) {
-                    module.hit(MINI);
-                    return false;
-                }
+        UiFeatures.register(MINI, COMMON_TIP_VIEW, "E", boolean.class, chain -> {
+            if (module.enabled(MINI) && isCommonPromotion(chain.getArg(0))) {
+                module.entered(MINI);
+                module.hit(MINI);
+                return false;
             }
             return chain.proceed();
         }, data, SONG);
-        deoptimizeCaller(module, loader, QQ + "minibarviptips.view.MinibarTopVipCommTipView", "N", data, SONG);
-        String owner = QQ + "minibarviptips.view.MinibarTopTipView";
-        deoptimizeCaller(module, loader, owner, "d", data);
-        deoptimizeCaller(module, loader, owner, "f", SONG, data);
+        UiFeatures.register(MINI, TIP_VIEW, "r0", void.class, chain -> {
+            Object view = chain.getThisObject();
+            boolean promo = isTopPromotion(chain.getArg(0), current);
+            if (!promo) UiFeatures.forget(view);
+            Object result = chain.proceed();
+            if (promo) UiFeatures.hide(view, MINI);
+            return result;
+        }, data, SONG);
+        UiFeatures.register(MINI, COMMON_TIP_VIEW, "N", void.class, chain -> {
+            Object view = chain.getThisObject();
+            boolean promo = isCommonPromotion(chain.getArg(0));
+            if (!promo) UiFeatures.forget(view);
+            Object result = chain.proceed();
+            if (promo) UiFeatures.hide(view, MINI);
+            return result;
+        }, data, SONG);
+
+        deoptimizeCaller(module, loader, TIP_VIEW, "W", SONG, data, String.class.getName(), "long", "long");
+        deoptimizeCaller(module, loader, TIP_VIEW, "d", data);
+        deoptimizeCaller(module, loader, TIP_VIEW, "f", SONG, data);
+        deoptimizeCaller(module, loader, COMMON_TIP_VIEW, "d", data);
+        deoptimizeCaller(module, loader, COMMON_TIP_VIEW, "f", SONG, data);
+        deoptimizeCaller(module, loader, TIP_MANAGER, current ? "V0" : "N0",
+                TIP_MANAGER, SONG, data, "boolean", "int", "int", Object.class.getName());
+    }
+
+    private static boolean isTopPromotion(Object tip, boolean current) throws Throwable {
+        if (tip == null) return false;
+        int type = (Integer) UiFeatures.invoke(tip, current ? "z" : "y");
+        return type == 37 || type == 38 || type == 48 || promotionalTip(UiFeatures.invoke(tip, "b"))
+                || promotionalTip(UiFeatures.invoke(tip, "s"));
+    }
+
+    private static boolean isCommonPromotion(Object tip) throws Throwable {
+        if (tip == null) return false;
+        Object material = UiFeatures.field(UiFeatures.invoke(tip, "a"), "material");
+        return promotionalTip(UiFeatures.field(material, "text"));
     }
 
     static boolean promotionalTip(Object text) {
         if (!(text instanceof CharSequence)) return false;
         String value = text.toString();
-        return value.contains("专属人声细节") || value.contains("声音魔法")
+        return (value.contains("搭配") && value.contains("音效") && value.contains("立即开启"))
+                || value.contains("专属人声细节") || value.contains("声音魔法")
                 || value.contains("用你的声音唱这首歌") || value.contains("AI生成你的演唱版")
                 || value.contains("AI帮你生成");
     }
@@ -179,7 +206,14 @@ final class AdFeatures {
     private static void deoptimizeCaller(Entry module, ClassLoader loader, String owner, String name, String... args) {
         try {
             Class<?>[] types = new Class<?>[args.length];
-            for (int i = 0; i < args.length; i++) types[i] = Class.forName(args[i], false, loader);
+            for (int i = 0; i < args.length; i++) {
+                types[i] = switch (args[i]) {
+                    case "boolean" -> boolean.class;
+                    case "int" -> int.class;
+                    case "long" -> long.class;
+                    default -> Class.forName(args[i], false, loader);
+                };
+            }
             module.deoptimize(Class.forName(owner, false, loader).getDeclaredMethod(name, types));
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             // Optional caller optimization on compatible frameworks.

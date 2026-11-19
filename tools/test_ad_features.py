@@ -61,6 +61,43 @@ public class v {
     public List<?> bound;
     public void v(m2 header, List<?> items, boolean resumed) { bound = items; }
 }''')
+src('com.tencent.qqmusicplayerprocess.songinfo.SongInfo', 'package com.tencent.qqmusicplayerprocess.songinfo; public class SongInfo {}')
+src('com.tencent.jce.superSound.MinibarTip', 'package com.tencent.jce.superSound; public class MinibarTip {}')
+src('com.tencent.qqmusic.minibarviptips.data.o', '''package com.tencent.qqmusic.minibarviptips.data;
+public record o(int type, String title, Banner banner) {
+    public int z() { return type; }
+    public String b() { return title; }
+    public String s() { return null; }
+    public Banner a() { return banner; }
+    public record Banner(Material material) {}
+    public record Material(String text) {}
+}''')
+src('com.tencent.qqmusic.minibarviptips.data.i0', '''package com.tencent.qqmusic.minibarviptips.data;
+import com.tencent.jce.superSound.MinibarTip;
+import com.tencent.qqmusicplayerprocess.songinfo.SongInfo;
+public class i0 {
+    public int requests;
+    public void I(SongInfo song) { requests++; }
+    public void N(SongInfo song, MinibarTip tip) {}
+    public void O(SongInfo song, MinibarTip tip) {}
+    public o s(SongInfo song) { return new o(37, "音效推广", null); }
+}''')
+src('com.tencent.qqmusic.minibarviptips.MinibarTipManager', '''package com.tencent.qqmusic.minibarviptips;
+import com.tencent.qqmusic.minibarviptips.data.o;
+import com.tencent.qqmusicplayerprocess.songinfo.SongInfo;
+public class MinibarTipManager {
+    public int dispatched;
+    public void U0(SongInfo song, o tip, boolean immediate, int source) { dispatched++; }
+    public boolean H(SongInfo song) { return true; }
+}''')
+for short,gate,render in [('MinibarTopTipView','Y(o tip)','r0'),('MinibarTopVipCommTipView','E(o tip, SongInfo song)','N')]:
+    src('com.tencent.qqmusic.minibarviptips.view.'+short, f'''package com.tencent.qqmusic.minibarviptips.view;
+import com.tencent.qqmusic.minibarviptips.data.o;
+import com.tencent.qqmusicplayerprocess.songinfo.SongInfo;
+public class {short} extends android.view.View {{
+    public boolean {gate} {{ return true; }}
+    public void {render}(o tip, SongInfo song) {{ setVisibility(VISIBLE); }}
+}}''')
 src('io.github.tancan1998.umusic.AdFeaturesTest', '''package io.github.tancan1998.umusic;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -69,6 +106,12 @@ import com.tencent.qqmusic.dialog.universal.s;
 import com.tencent.qqmusic.homepage.header.m2;
 import com.tencent.qqmusic.homepage.header.v;
 import com.tencent.qqmusicplayerprocess.network.w;
+import com.tencent.qqmusicplayerprocess.songinfo.SongInfo;
+import com.tencent.qqmusic.minibarviptips.MinibarTipManager;
+import com.tencent.qqmusic.minibarviptips.data.i0;
+import com.tencent.qqmusic.minibarviptips.data.o;
+import com.tencent.qqmusic.minibarviptips.view.MinibarTopTipView;
+import com.tencent.qqmusic.minibarviptips.view.MinibarTopVipCommTipView;
 import com.tme.operationpointplatform.m;
 public class AdFeaturesTest {
     public record Card(int type) { public int d() { return type; } }
@@ -129,7 +172,35 @@ public class AdFeaturesTest {
         check(AdFeatures.promotionalTip("搭配许嵩音效还原专属人声细节") &&
               AdFeatures.promotionalTip("声音魔法！AI生成你的演唱版") &&
               !AdFeatures.promotionalTip("播放队列") && !AdFeatures.promotionalTip(null), "scoped promotion wording");
-        System.out.println("PASS: signup popup resource isolation and cleanup, native no-ad response, master switch, targeted banner filtering");
+        check(module.installed.get("minibar_promo") == 10, "all current minibar hooks register");
+        var manager = new MinibarTipManager();
+        var song = new SongInfo();
+        var tipSignature = new Class<?>[]{o.class, SongInfo.class};
+        var dispatchSignature = new Class<?>[]{SongInfo.class, o.class, boolean.class, int.class};
+        var ordinary = new o(54, "播放队列", null);
+        var effect = new o(37, "使用推荐音效", null);
+        var singing = new o(48, "生成你的演唱版", null);
+        var banner = new o(1000, null, new o.Banner(new o.Material("声音魔法！")));
+        var fx = new i0();
+        call(fx, "I", new Class<?>[]{SongInfo.class}, song);
+        check(fx.requests == 0, "upstream sound promotion request blocked");
+        for (var promo : List.of(effect, singing, banner))
+            call(manager, "U0", dispatchSignature, song, promo, false, 0);
+        call(manager, "U0", dispatchSignature, song, ordinary, false, 0);
+        check(manager.dispatched == 1, "only ordinary tip reaches host dispatcher");
+        var tipView = new MinibarTopTipView();
+        check(!(Boolean) call(tipView, "Y", new Class<?>[]{o.class}, singing), "AI tip eligibility blocked");
+        call(tipView, "r0", tipSignature, effect, song);
+        check(tipView.getVisibility() == 8, "promotion binding hides view");
+        call(tipView, "r0", tipSignature, ordinary, song);
+        check(tipView.getVisibility() == 0, "recycled view restores ordinary tip");
+        var common = new MinibarTopVipCommTipView();
+        check(!(Boolean) call(common, "E", tipSignature, banner, song), "common promo eligibility blocked");
+        module.toggles.put("minibar_promo", false);
+        call(manager, "U0", dispatchSignature, song, effect, false, 0);
+        check(manager.dispatched == 2, "minibar switch off restores host behavior");
+        check((Boolean) call(common, "E", tipSignature, banner, song), "original common eligibility restored");
+        System.out.println("PASS: signup popup, player ads, home banners, current minibar promotions and ordinary tip restoration");
     }
 }''')
 

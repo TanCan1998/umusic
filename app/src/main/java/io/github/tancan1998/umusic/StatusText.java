@@ -9,7 +9,8 @@ final class StatusText {
 
     static String format(String feature,int installed,int expected,boolean enabled,long hits,String sign,int days){
         if(!enabled)return "未启用";
-        if(expected<=0||installed!=expected)return "不可用";
+        if(installed<=0)return "不可用";
+        boolean partial=installed<expected;
         if("auto_sign".equals(feature)){
             if(sign.startsWith("普通日签：")){
                 if(sign.contains("等待登录"))return "等待登录";
@@ -23,9 +24,14 @@ final class StatusText {
             else if(sign.contains("请求中"))suffix="签到中";
             if(days>0)return "连续签到 "+days+" 天"+(suffix.isEmpty()?"":" · "+suffix);
             if(!suffix.isEmpty())return suffix;
-            return sign.contains("已签到")||sign.contains("成功")?"今日已签到":"可用";
+            if(sign.contains("已签到")||sign.contains("成功"))return "今日已签到";
+            return partial?"部分可用":"可用";
         }
         boolean intercept=!"local_vip".equals(feature)&&!"sound_effects".equals(feature);
+        if(partial){
+            if(hits<=0)return "部分可用";
+            return intercept?"已拦截（部分兼容）":"已生效（部分兼容）";
+        }
         return intercept&&hits>0?"已拦截":"可用";
     }
 }
